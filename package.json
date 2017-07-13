@@ -1,0 +1,17 @@
+{
+  "name": "git-jira",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:Juszczak/git-jira.git",
+  "author": "Adrian Juszczak <adrian@juszczak.io> (https://juszczak.io)",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^8.0.12",
+    "pkg": "^4.1.1"
+  },
+  "scripts": {
+    "start": "tsc --watch",
+    "build": "tsc",
+    "dist": "pkg -t node6-macos --out-dir dist/ built/"
+  }
+}
