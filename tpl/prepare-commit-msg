@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-export GIT_JIRA_USER=admin
-export GIT_JIRA_PASSWORD=H3lt3r_Sk3lt3r@Atlassian
-export GIT_JIRA_HOSTNAME=juszczak.atlassian.net
-
-node .git/hooks/prepare-commit-msg.js

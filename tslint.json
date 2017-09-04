@@ -29,7 +29,7 @@
     "no-boolean-literal-compare": true,
     "no-conditional-assignment": true,
     "no-consecutive-blank-lines": true,
-    "no-console": [true, "log", "debug", "info", "time", "timeEnd", "trace"],
+    "no-console": [false, "log", "debug", "info", "time", "timeEnd", "trace"],
     "no-construct": true,
     "no-debugger": true,
     "no-default-export": true,

@@ -7,11 +7,12 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^8.0.12",
-    "pkg": "^4.1.1"
+    "pkg": "^4.1.1",
+    "ts-loader": "^2.3.4",
+    "typescript": "^2.5.2",
+    "webpack": "^3.5.5"
   },
   "scripts": {
-    "start": "tsc --watch",
-    "build": "tsc",
-    "dist": "pkg -t node6-macos --out-dir dist/ built/"
+    "start": "./install"
   }
 }

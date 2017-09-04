@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import {exec} from 'child_process';
 import {readFile, writeFile} from 'fs';
 import {get, IncomingMessage, RequestOptions} from 'https';
