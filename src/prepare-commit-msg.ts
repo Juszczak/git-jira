@@ -16,14 +16,15 @@ const readCredentialsFromEnv: () => Environment = (): Environment => ({
 const getCredentials: () => Promise<Credentials> = async (): Promise<Credentials> => {
   const environment: Environment = readCredentialsFromEnv();
 
-  if (!(Object.keys(environment).length === 3))
-    throw new Error(`No ${ENV_VARS.GIT_JIRA_USER}, ${ENV_VARS.GIT_JIRA_PASSWORD} or ${ENV_VARS.GIT_JIRA_URL} set.`);
+  if (!(environment.username && environment.password && environment.url)) {
+    console.log(`No ${ENV_VARS.GIT_JIRA_USER}, ${ENV_VARS.GIT_JIRA_PASSWORD} or ${ENV_VARS.GIT_JIRA_URL} set.`);
+    process.exit(1);
+  }
 
   const {password, username}: Environment = environment;
   const url: string[] = (environment.url as string).split(':');
   const host: string = url[0];
   const port: number = url.length > 1 ? parseInt(url[1], 10) : 443;
-
   return {host, password, username, port} as Credentials;
 };
 
