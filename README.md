@@ -10,3 +10,6 @@ Prepare git commit message from Jira issue by branch name
   export GIT_JIRA_PASSWORD=your_password
   export GIT_JIRA_URL=your_jira_hostname_with_port
 ```
+
+# Uninstall
+Run `./uninstall path/to/project/root`
