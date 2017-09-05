@@ -34,7 +34,7 @@ const fetchIssues: (credentials: Credentials) => Promise<JiraResponse> = async (
     headers: {'Content-Type': 'application/json'},
     host,
     port: port ? port : undefined,
-    path: `/rest/api/2/search?jql=assignee=${username}+and+resolution=unresolved`,
+    path: `/rest/api/2/search?jql=assignee=${username}`,
   };
 
   const getResponseData: (response: IncomingMessage) => Promise<string> = async (response: IncomingMessage): Promise<string> => {
