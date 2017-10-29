@@ -1,10 +1,7 @@
 {
   "name": "git-jira",
   "version": "1.0.0",
-  "main": "index.js",
-  "repository": "git@github.com:Juszczak/git-jira.git",
-  "author": "Adrian Juszczak <adrian@juszczak.io> (https://juszczak.io)",
-  "license": "MIT",
+  "description": "Prepare git commit message from Jira issue by branch name",
   "devDependencies": {
     "@types/node": "^8.0.12",
     "pkg": "^4.1.1",
@@ -12,7 +9,15 @@
     "typescript": "^2.5.2",
     "webpack": "^3.5.5"
   },
-  "scripts": {
-    "start": "./install"
-  }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Juszczak/git-jira.git"
+  },
+  "keywords": ["git-jira", "git", "jira", "jira-rest-api", "automation"],
+  "author": "Adrian Juszczak <adrian@juszczak.io> (https://juszczak.io)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Juszczak/git-jira/issues"
+  },
+  "homepage": "https://github.com/Juszczak/git-jira#readme"
 }
