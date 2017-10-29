@@ -1,6 +1,7 @@
 import {exec} from 'child_process';
 import {readFile, writeFile} from 'fs';
-import {get, IncomingMessage, RequestOptions} from 'https';
+import {IncomingMessage} from 'http';
+import {get, RequestOptions} from 'https';
 import {resolve} from 'path';
 import {commitEditMsg} from './constants';
 import {ENV_VARS} from './env-vars';
@@ -38,37 +39,36 @@ const fetchIssues: (credentials: Credentials) => Promise<JiraResponse> = async (
   };
 
   const getResponseData: (response: IncomingMessage) => Promise<string> = async (response: IncomingMessage): Promise<string> => {
-    return new Promise<string>((resolve: (data: string) => void, reject: (error: Error) => void): void => {
+    return new Promise<string>((resolveCb: (data: string) => void, rejectCb: (error: Error) => void): void => {
       let data: string = '';
       response.on('data', (chunk: string) => { data += chunk; });
-      response.on('end', () => resolve(data));
-      response.on('error', (error: Error) => reject(error));
+      response.on('end', () => resolveCb(data));
+      response.on('error', (error: Error) => rejectCb(error));
     });
   };
 
-  return new Promise<JiraResponse>(async (resolve: (response: JiraResponse) => void, reject: (error: Error) => void): Promise<void> => {
+  return new Promise<JiraResponse>(async (resolveCb: (response: JiraResponse) => void, rejectCb: (error: Error) => void): Promise<void> => {
     get(request, async (response: IncomingMessage): Promise<void> => {
       try {
-        resolve(JSON.parse(await getResponseData(response)) as JiraResponse);
+        resolveCb(JSON.parse(await getResponseData(response)) as JiraResponse);
       } catch (error) {
-        reject(error.message);
+        rejectCb(error.message);
       }
     });
   });
 };
 
 const getGitBranchName: () => Promise<string> = async (): Promise<string> => {
-  return new Promise<string>((resolve: (name: string) => void, reject: (error: Error) => void): void => {
+  return new Promise<string>((resolveCb: (name: string) => void, rejectCb: (error: Error) => void): void => {
     exec('git rev-parse --abbrev-ref HEAD', async (error: Error, stdout: string) => {
-      if (error && /fatal/.test(stdout)) reject(error || stdout.trim());
-      else resolve(stdout.trim());
+      if (error && /fatal/.test(stdout)) rejectCb(error || stdout.trim());
+      else resolveCb(stdout.trim());
     });
   });
 };
 
-const prepareCommitMessage: () => Promise<string> = async (): Promise<string> => {
+const prepareCommitMessage: (branch: string) => Promise<string> = async (branch: string): Promise<string> => {
   try {
-    const branch: string = await getGitBranchName();
     const credentials: Credentials = await getCredentials();
     let response: JiraResponse;
     try {
@@ -90,18 +90,20 @@ const prepareCommitMessage: () => Promise<string> = async (): Promise<string> =>
 };
 
 const setCommitEditMsg: () => Promise<void> = async (): Promise<void> => {
-  const prependExistingMessage: (message: string) => Promise<string> = async (message: string): Promise<string> => {
-    const header: string = await prepareCommitMessage();
-    return `${header}\n${message}`;
-  };
+  const branch: string = await getGitBranchName();
   const rootPath: string = await getRootPath();
   const commitMessagePath: string = resolve(rootPath, commitEditMsg);
   readFile(commitMessagePath, 'utf8', async (error: Error, message: string) => {
     if (error) throw new Error(error.message);
-    const final: string = await prependExistingMessage(message);
-    if (~message.substr(0, 10).indexOf(final.substr(0, 10))) {
+
+    if (~message.substr(0, 20).indexOf(`[${branch}]`)) {
+      console.log(`commit message for ${branch} already exists`);
     } else {
-      writeFile(commitMessagePath, await prependExistingMessage(message));
+      const prependExistingMessage: (msg: string) => Promise<string> = async (msg: string): Promise<string> => {
+        const header: string = await prepareCommitMessage(branch);
+        return `${header}\n${msg}`;
+      };
+      writeFile(commitMessagePath, await prependExistingMessage(message), () => null);
     }
   });
 };
