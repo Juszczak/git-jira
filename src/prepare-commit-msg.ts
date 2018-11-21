@@ -1,17 +1,17 @@
-import {exec} from 'child_process';
 import {readFile, writeFile} from 'fs';
 import {IncomingMessage} from 'http';
 import {get, RequestOptions} from 'https';
 import {resolve} from 'path';
 import {commitEditMsg} from './constants';
 import {ENV_VARS} from './env-vars';
+import {exec} from './exec';
 import {Credentials, Environment, JiraIssue, JiraResponse} from './interfaces';
 import {getRootPath} from './utils';
 
 const readCredentialsFromEnv: () => Environment = (): Environment => ({
   username: process.env[ENV_VARS.GIT_JIRA_USER] as string,
   password: process.env[ENV_VARS.GIT_JIRA_PASSWORD] as string,
-  url: (process.env[ENV_VARS.GIT_JIRA_URL] as string),
+  url: process.env[ENV_VARS.GIT_JIRA_URL] as string,
 });
 
 const getCredentials: () => Promise<Credentials> = async (): Promise<Credentials> => {
@@ -29,7 +29,12 @@ const getCredentials: () => Promise<Credentials> = async (): Promise<Credentials
   return {host, password, username, port} as Credentials;
 };
 
-const fetchIssues: (credentials: Credentials) => Promise<JiraResponse> = async ({host, password, username, port}: Credentials): Promise<JiraResponse> => {
+const fetchIssues: (credentials: Credentials) => Promise<JiraResponse> = async ({
+  host,
+  password,
+  username,
+  port,
+}: Credentials): Promise<JiraResponse> => {
   const request: RequestOptions = {
     auth: `${username}:${password}`,
     headers: {'Content-Type': 'application/json'},
@@ -39,32 +44,37 @@ const fetchIssues: (credentials: Credentials) => Promise<JiraResponse> = async (
   };
 
   const getResponseData: (response: IncomingMessage) => Promise<string> = async (response: IncomingMessage): Promise<string> => {
-    return new Promise<string>((resolveCb: (data: string) => void, rejectCb: (error: Error) => void): void => {
-      let data: string = '';
-      response.on('data', (chunk: string) => { data += chunk; });
-      response.on('end', () => resolveCb(data));
-      response.on('error', (error: Error) => rejectCb(error));
-    });
+    return new Promise<string>(
+      (resolveCb: (data: string) => void, rejectCb: (error: Error) => void): void => {
+        let data: string = '';
+        response.on('data', (chunk: string) => {
+          data += chunk;
+        });
+        response.on('end', () => resolveCb(data));
+        response.on('error', (error: Error) => rejectCb(error));
+      },
+    );
   };
 
-  return new Promise<JiraResponse>(async (resolveCb: (response: JiraResponse) => void, rejectCb: (error: Error) => void): Promise<void> => {
-    get(request, async (response: IncomingMessage): Promise<void> => {
-      try {
-        resolveCb(JSON.parse(await getResponseData(response)) as JiraResponse);
-      } catch (error) {
-        rejectCb(error.message);
-      }
-    });
-  });
+  return new Promise<JiraResponse>(
+    async (resolveCb: (response: JiraResponse) => void, rejectCb: (error: Error) => void): Promise<void> => {
+      get(
+        request,
+        async (response: IncomingMessage): Promise<void> => {
+          try {
+            resolveCb(JSON.parse(await getResponseData(response)) as JiraResponse);
+          } catch (error) {
+            rejectCb(error.message);
+          }
+        },
+      );
+    },
+  );
 };
 
 const getGitBranchName: () => Promise<string> = async (): Promise<string> => {
-  return new Promise<string>((resolveCb: (name: string) => void, rejectCb: (error: Error) => void): void => {
-    exec('git rev-parse --abbrev-ref HEAD', async (error: Error, stdout: string) => {
-      if (error && /fatal/.test(stdout)) rejectCb(error || stdout.trim());
-      else resolveCb(stdout.trim());
-    });
-  });
+  const {stdout, stderr} = await exec('git rev-parse --abbrev-ref HEAD');
+  return stderr ? stderr.trim() : stdout.trim();
 };
 
 const prepareCommitMessage: (branch: string) => Promise<string> = async (branch: string): Promise<string> => {
@@ -79,7 +89,7 @@ const prepareCommitMessage: (branch: string) => Promise<string> = async (branch:
     const header: string = response.issues
       .filter((issue: JiraIssue) => issue.key === branch)
       .reduce((message: string, issue: JiraIssue) => {
-        const parent: string = (issue.fields.parent && issue.fields.parent.key) ? `[${issue.fields.parent.key}]` : '';
+        const parent: string = issue.fields.parent && issue.fields.parent.key ? `[${issue.fields.parent.key}]` : '';
         message = parent + `[${issue.key}] ${issue.fields.summary}\n\nChanges made:\n- `;
         return message;
       }, '');
@@ -92,13 +102,11 @@ const prepareCommitMessage: (branch: string) => Promise<string> = async (branch:
 const setCommitEditMsg: () => Promise<void> = async (): Promise<void> => {
   const branch: string = await getGitBranchName();
   const rootPath: string = await getRootPath();
-  const commitMessagePath: string = resolve(rootPath, commitEditMsg);
+  const commitMessagePath: string = resolve(rootPath.trim(), commitEditMsg.trim());
   readFile(commitMessagePath, 'utf8', async (error: Error, message: string) => {
     if (error) throw new Error(error.message);
 
-    if (~message.substr(0, 20).indexOf(`[${branch}]`)) {
-      console.log(`commit message for ${branch} already exists`);
-    } else {
+    if (!~message.substr(0, 20).indexOf(`[${branch}]`)) {
       const prependExistingMessage: (msg: string) => Promise<string> = async (msg: string): Promise<string> => {
         const header: string = await prepareCommitMessage(branch);
         return `${header}\n${msg}`;
@@ -108,4 +116,6 @@ const setCommitEditMsg: () => Promise<void> = async (): Promise<void> => {
   });
 };
 
-setCommitEditMsg();
+if (!process.env.DISABLE_GIT_JIRA) {
+  setCommitEditMsg();
+}

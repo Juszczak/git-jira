@@ -70,8 +70,6 @@
     "templates-use-public": true,
     "trailing-comma": [true, {"multiline": "always", "singleline": "never"}],
     "triple-equals": [true, "allow-null-check"],
-    "typedef": [true, "call-signature", "arrow-call-signature", "parameter", "arrow-parameter", "property-declaration", "variable-declaration", "member-variable-declaration", "object-destructuring", "array-destructuring"],
-    "typedef-whitespace": [true, {"call-signature": "nospace", "index-signature": "nospace", "parameter": "nospace", "property-declaration": "nospace", "variable-declaration": "nospace"}],
     "typeof-compare": true,
     "unified-signatures": true,
     "use-host-property-decorator": true,

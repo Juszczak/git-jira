@@ -1,10 +1,6 @@
-import {exec} from 'child_process';
+import {exec} from './exec';
 
 export const getRootPath: () => Promise<string> = async (): Promise<string> => {
-  return new Promise((resolve: (path: string) => void, reject: (error: Error) => void): void => {
-    exec('git rev-parse --show-toplevel', async (error: Error, stdout: string) => {
-      if (error) reject(error);
-      else resolve(stdout.trim());
-    });
-  });
+  const {stdout, stderr} = await exec('git rev-parse --show-toplevel');
+  return stderr ? stderr.trim() : stdout.trim();
 };

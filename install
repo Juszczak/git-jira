@@ -19,6 +19,6 @@ const build = () => webpack(webpackConfig).run((err, stats) => err ? throwError(
 const copyFiles = (path) => {
   createReadStream(resolve('./dist/prepare-commit-msg'))
     .pipe(createWriteStream(gitHookPath));
-  chmodSync(gitHookPath, 0755);
+  chmodSync(gitHookPath, '0755');
 }
 path ? build() : throwError('no project path specified');

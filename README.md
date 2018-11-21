@@ -11,11 +11,18 @@
   export GIT_JIRA_URL=your_jira_hostname_with_port
 ```
 
+# Uninstall
+Run `./uninstall path/to/project/root`
+
 # Usage
 The tool uses [prepare-commit-msg](https://git-scm.com/docs/githooks#_prepare_commit_msg) hook,
 so all you need to do is just `git commit` as usual.
 
-> For performance purposes, the script fetches only *unresolved* issues *assigned to the current user*
+> For performance purposes, the script fetches only issues *assigned to the current user*
 
-# Uninstall
-Run `./uninstall path/to/project/root`
+# Disable
+Set `DISABLE_GIT_JIRA` env variable
+
+```
+DISABLE_GIT_JIRA=true git commit
+```
