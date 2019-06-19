@@ -11,6 +11,8 @@
   export GIT_JIRA_URL=your_jira_hostname_with_port
 ```
 
+> `GIT_JIRA_URL` should not include the protocol
+
 # Uninstall
 Run `./uninstall path/to/project/root`
 
