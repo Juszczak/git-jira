@@ -2,7 +2,6 @@ import {readFile, writeFile} from 'fs';
 import {IncomingMessage} from 'http';
 import {get, RequestOptions} from 'https';
 import {resolve} from 'path';
-import {commitEditMsg} from './constants';
 import {ENV_VARS} from './env-vars';
 import {exec} from './exec';
 import {Credentials, Environment, JiraIssue, JiraResponse} from './interfaces';
@@ -101,20 +100,8 @@ const prepareCommitMessage: (branch: string) => Promise<string> = async (branch:
 
 const setCommitEditMsg: () => Promise<void> = async (): Promise<void> => {
   const branch: string = await getGitBranchName();
-  const rootPath: string = await getRootPath();
-  const commitMessagePath: string = resolve(rootPath.trim(), commitEditMsg.trim());
-  readFile(commitMessagePath, 'utf8', async (error: Error, message: string) => {
-    if (error) throw new Error(error.message);
-
-    if (!~message.substr(0, 20).indexOf(`[${branch}]`)) {
-      const prependExistingMessage: (msg: string) => Promise<string> = async (msg: string): Promise<string> => {
-        const header: string = await prepareCommitMessage(branch);
-        return `${header}\n${msg}`;
-      };
-      writeFile(commitMessagePath, await prependExistingMessage(message), () => null);
-    }
-  });
-};
+  process.stdout.write(await prepareCommitMessage(branch));
+}
 
 if (!process.env.DISABLE_GIT_JIRA) {
   setCommitEditMsg();
