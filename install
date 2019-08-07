@@ -5,20 +5,13 @@ const filesDir = resolve('./built');
 const webpack = require('webpack');
 const webpackConfig = require('./webpack.config.js');
 const {exec} = require('pkg');
-const path = process.argv[2];
 const throwError = (message) => console.error('error:', message);
 const compilationArgs = ['./dist/prepare-commit-msg.js', '--target', 'host', '--output', './dist/prepare-commit-msg', '--silent'];
-const gitHookPath = resolve(path, '.git/hooks/prepare-commit-msg');
 const compileBinary = () => {
   const log = console.log;
   console.log = () => null;
-  exec(compilationArgs, {silent: true}).then(() => copyFiles(path));
+  exec(compilationArgs, {silent: true});
   console.log = log;
 }
 const build = () => webpack(webpackConfig).run((err, stats) => err ? throwError('webpack build error') : compileBinary());
-const copyFiles = (path) => {
-  createReadStream(resolve('./dist/prepare-commit-msg'))
-    .pipe(createWriteStream(gitHookPath));
-  chmodSync(gitHookPath, '0755');
-}
-path ? build() : throwError('no project path specified');
+build()
