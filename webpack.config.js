@@ -18,11 +18,12 @@ module.exports = {
     modules: [path.resolve(__dirname, './node_modules')],
   },
   module: {
-    rules: [{
-      test: /\.ts$/,
-      loader: 'ts-loader',
-      options: {silent: true},
-    },
+    rules: [
+      {
+        test: /\.ts$/,
+        loader: 'ts-loader',
+        options: {silent: true},
+      },
     ],
   },
   plugins: [
@@ -30,9 +31,6 @@ module.exports = {
       banner: '#!/usr/bin/env node',
       raw: true,
     }),
-    new webpack.optimize.UglifyJsPlugin({
-      compress: false,
-      sourceMap: false,
-    }),
-  ]
+  ],
+  optimization: {minimize: true},
 };

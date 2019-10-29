@@ -103,7 +103,7 @@ const setCommitEditMsg: () => Promise<void> = async (): Promise<void> => {
   const branch: string = await getGitBranchName();
   const rootPath: string = await getRootPath();
   const commitMessagePath: string = resolve(rootPath.trim(), commitEditMsg.trim());
-  readFile(commitMessagePath, 'utf8', async (error: Error, message: string) => {
+  readFile(commitMessagePath, 'utf8', async (error, message: string) => {
     if (error) throw new Error(error.message);
 
     if (!~message.substr(0, 20).indexOf(`[${branch}]`)) {

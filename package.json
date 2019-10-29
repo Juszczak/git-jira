@@ -2,13 +2,16 @@
   "name": "git-jira",
   "version": "1.0.0",
   "description": "Prepare git commit message from Jira issue by branch name",
+  "scripts": {
+    "install": "webpack --mode=production; ./install"
+  },
   "devDependencies": {
-    "@types/node": "^10.12.9",
-    "cryptiles": "^4.1.3",
-    "pkg": "^4.3.4",
-    "ts-loader": "^2.3.7",
-    "typescript": "^2.9.2",
-    "webpack": "^3.12.0"
+    "@types/node": "^12.11.7",
+    "pkg": "^4.4.0",
+    "ts-loader": "^6.2.1",
+    "typescript": "^3.6.4",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.9"
   },
   "repository": {
     "type": "git",
