@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "description": "Prepare git commit message from Jira issue by branch name",
   "scripts": {
-    "start": "npm run compile && npm run package && npm run copy",
+    "start": "npm run prepare && npm run copy",
+    "prepare": "npm run compile && npm run package",
     "compile": "tsc",
     "package": "pkg ./built/prepare-commit-msg.js --target host --output ./dist/prepare-commit-msg",
     "copy": "./scripts/copy",
-    "uninstall": "./scripts/uninstall"
+    "uninstall": "./scripts/uninstall",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "tslib": "^1.10.0"
