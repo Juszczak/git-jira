@@ -1,4 +1,5 @@
 # git-jira
+[![CircleCI](https://circleci.com/gh/Juszczak/git-jira.svg?style=svg)](https://circleci.com/gh/Juszczak/git-jira)
 🤖 Automation tool that fetches data from Jira API by current git branch and uses prepare-commit-msg hook
 
 # Install from source
