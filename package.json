@@ -3,15 +3,19 @@
   "version": "1.0.0",
   "description": "Prepare git commit message from Jira issue by branch name",
   "scripts": {
-    "install": "webpack --mode=production; ./install"
+    "start": "npm run compile && npm run package && npm run copy",
+    "compile": "tsc",
+    "package": "pkg ./built/prepare-commit-msg.js --target host --output ./dist/prepare-commit-msg",
+    "copy": "./scripts/copy",
+    "uninstall": "./scripts/uninstall"
+  },
+  "dependencies": {
+    "tslib": "^1.10.0"
   },
   "devDependencies": {
     "@types/node": "^12.11.7",
     "pkg": "^4.4.0",
-    "ts-loader": "^6.2.1",
-    "typescript": "^3.6.4",
-    "webpack": "^4.41.2",
-    "webpack-cli": "^3.3.9"
+    "typescript": "^3.7.1-rc"
   },
   "repository": {
     "type": "git",

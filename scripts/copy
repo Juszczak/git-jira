@@ -1,0 +1,11 @@
+#!/usr/bin/env node
+
+const {createReadStream, createWriteStream, chmodSync} = require('fs');
+const {resolve} = require('path');
+
+const path = process.argv[2];
+const gitHookPath = resolve(path, '.git/hooks/prepare-commit-msg');
+
+createReadStream(resolve('./dist/prepare-commit-msg')).pipe(createWriteStream(gitHookPath));
+
+chmodSync(gitHookPath, '0755');
