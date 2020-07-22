@@ -7,6 +7,12 @@
 curl https://raw.githubusercontent.com/Juszczak/git-jira/master/scripts/install | bash
 ```
 
+The script installs its exec util into `$HOME/.bin`. Make sure to add this directory to your path:
+
+```
+export PATH="$HOME/.bin:$PATH"
+```
+
 # Setup
 
 Set up Jira credentials as environment variables:
