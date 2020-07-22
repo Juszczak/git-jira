@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+
+function print_separator {
+  local separator_char="-"
+  printf "%0$(tput cols)d" 0|tr '0' "$separator_char"
+}
+
+function print_log {
+  local icon
+  case "$1" in
+    "info")    icon="ℹ️  ";;
+    "success") icon="✅ ";;
+    "item")    icon="👉 ";;
+    "error")   icon="❌ ";;
+    *) icon="$1"
+  esac
+  echo "$icon ${@:2}"
+}
+
+function abort_all {
+  print_log "error" "$1"
+  echo
+  echo "🤷  $(tput bold)$(tput setaf 1)Something went wrong, sorry!$(tput sgr0) 🤷"
+  echo
+  exit 1
+}
+
+declare repo_url
+declare plugin_url
+declare exec_url
+declare plugin_path
+declare plugin_path
+declare exec_path
+declare uninstall_script
+declare response status_code
+
+repo_url="https://github.com/Juszczak/git-jira/blob/master"
+plugin_url="$repo_url/plugin/git_jira/git_jira.vim"
+exec_url="$repo_url/lib/git-jira-commit-msg.js"
+plugin_path="$HOME/.vim/plugin/git_jira/git_jira.vim"
+
+
+if [ -n "$1" ]; then
+  exec_path="$1"
+else
+  exec_path="$HOME/.bin/git-jira-commit-msg"
+fi
+
+print_separator
+
+if ! [ -d "$(dirname "$exec_path")" ]; then
+  print_log "info" "Creating directory $(dirname "$exec_path")"
+  mkdir -p "$(dirname "$exec_path")"
+fi
+
+print_log "item" "$(tput bold)Installing git-jira…$(tput sgr0)"
+
+print_separator
+
+print_log "info" "Fetching $exec_url"
+
+response=$(curl -f "$exec_url")
+status_code="$?"
+
+if [ $status_code -eq 0 ]; then
+  echo "$response" > "$exec_path"
+  chmod +x "$exec_path"
+  print_log "success" "GitJira executable saved to $exec_path"
+else
+  abort_all "Error while fetching $exec_url"
+fi
+
+print_separator
+
+print_log "info" "Fetching $plugin_url"
+
+if ! [ -d "$(dirname "$plugin_path")" ]; then
+  print_log "info" "Creating directory $(dirname "$plugin_path")"
+  mkdir -p "$(dirname "$plugin_path")"
+fi
+
+response=$(curl -f "$plugin_url")
+status_code="$?"
+
+if [ $status_code -eq 0 ]; then
+  echo "$response" > "$plugin_path"
+  chmod +x "$plugin_path"
+  print_log "success" "GitJira Vim plugin saved to $plugin_path"
+else
+  abort_all "Error while fetching $plugin_url"
+fi
+
+print_separator
+
+echo "🎉 $(tput bold)$(tput setaf 2)Successfully installed Git Jira!$(tput sgr0) 🎉"
+
+uninstall_script="$(dirname "$exec_path")/git-uninstall-git-jira"
+
+cat > "$uninstall_script" << EOF
+#!/usr/bin/env bash
+rm $exec_path
+rm -rf $(dirname "$plugin_path")
+rm $uninstall_script
+echo "🚮 Git Jira removed."
+EOF
+chmod +x "$uninstall_script"
+
+cat << EOF
+
+  $(tput bold)Setup$(tput sgr0)
+
+  Git Jira reqires Jira credentials exported as environment variables:
+
+  export GIT_JIRA_USER="your user name"
+  export GIT_JIRA_PASSWORD="your password"
+  export GIT_JIRA_URL="your jira server address"
+
+  $(tput bold)Uninstall$(tput sgr0)
+
+  To uninstall Git Jira run:
+
+    cat $(dirname "$exec_path")/git-uninstall-git-jira | bash
+
+  $(tput bold)Usage$(tput sgr0)
+
+  While editing commit message in vim use command:
+
+    :PrepareCommitMessage
+
+  You can also use the standalone executable with optional branch parameter:
+
+    $ git-jira-commit-msg [branch]
+
+EOF

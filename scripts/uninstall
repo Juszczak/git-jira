@@ -1,6 +1,0 @@
-#!/usr/bin/env node
-
-const {unlinkSync} = require('fs');
-const {resolve} = require('path');
-const path = process.argv[2];
-path ? unlinkSync(resolve(path, '.git/hooks/prepare-commit-msg')) : console.log('no project path specified');
