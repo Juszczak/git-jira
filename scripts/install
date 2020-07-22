@@ -34,7 +34,7 @@ declare exec_path
 declare uninstall_script
 declare response status_code
 
-repo_url="https://github.com/Juszczak/git-jira/blob/master"
+repo_url="https://raw.githubusercontent.com/Juszczak/git-jira/master"
 plugin_url="$repo_url/plugin/git_jira/git_jira.vim"
 exec_url="$repo_url/lib/git-jira-commit-msg.js"
 plugin_path="$HOME/.vim/plugin/git_jira/git_jira.vim"
