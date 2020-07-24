@@ -111,9 +111,13 @@ cat << EOF
 
   Git Jira reqires Jira credentials exported as environment variables:
 
-  export GIT_JIRA_USER="your user name"
-  export GIT_JIRA_PASSWORD="your password"
-  export GIT_JIRA_URL="your jira server address"
+    export GIT_JIRA_USER="your user name"
+    export GIT_JIRA_PASSWORD="your password"
+    export GIT_JIRA_URL="your jira server address"
+
+  The script installs its exec util into "$HOME/.bin". Make sure to add this directory to your path:
+
+    export PATH="$HOME/.bin:$PATH"
 
   $(tput bold)Uninstall$(tput sgr0)
 
@@ -123,12 +127,16 @@ cat << EOF
 
   $(tput bold)Usage$(tput sgr0)
 
+  You can use the standalone executable with optional branch parameter:
+
+    $ git-jira-commit-msg [branch]
+
+  Also, the executable is actually a git plugin:
+
+    $ git jira-commit-msg [branch]
+
   While editing commit message in vim use command:
 
     :PrepareCommitMessage
-
-  You can also use the standalone executable with optional branch parameter:
-
-    $ git-jira-commit-msg [branch]
 
 EOF
