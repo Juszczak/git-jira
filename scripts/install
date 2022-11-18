@@ -1,142 +1,161 @@
 #!/usr/bin/env bash
 
-function print_separator {
-  local separator_char="-"
-  printf "%0$(tput cols)d" 0|tr '0' "$separator_char"
-}
+cat << EOM
 
-function print_log {
-  local icon
-  case "$1" in
-    "info")    icon="ℹ️  ";;
-    "success") icon="✅ ";;
-    "item")    icon="👉 ";;
-    "error")   icon="❌ ";;
-    *) icon="$1"
-  esac
-  echo "$icon ${@:2}"
-}
+       _ _        _ _
+  __ _(_) |_     (_|_)_ __ __ _
+ / _  | | __|____| | | '__/ _  |
+| (_| | | ||_____| | | | | (_| |
+ \__, |_|\__|   _/ |_|_|  \__,_|
+ |___/         |__/
 
-function abort_all {
-  print_log "error" "$1"
-  echo
-  echo "🤷  $(tput bold)$(tput setaf 1)Something went wrong, sorry!$(tput sgr0) 🤷"
-  echo
-  exit 1
-}
+EOM
 
-declare repo_url
-declare plugin_url
-declare exec_url
-declare plugin_path
-declare plugin_path
-declare exec_path
-declare uninstall_script
-declare response status_code
+if [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" != true ]]; then
+    echo "Not a git repository (or any of the parent directories). Run the command inside the repository you would like to use the plugin in.";
+    exit 1;
+fi
 
-repo_url="https://raw.githubusercontent.com/Juszczak/git-jira/master"
-plugin_url="$repo_url/plugin/git_jira/git_jira.vim"
-exec_url="$repo_url/lib/git-jira-commit-msg.js"
-plugin_path="$HOME/.vim/plugin/git_jira/git_jira.vim"
+HOOKURL="https://raw.githubusercontent.com/Juszczak/git-jira/master/hooks/prepare-commit-msg"
+HOOKPATH="$(git rev-parse --show-toplevel)/.git/hooks/prepare-commit-msg"
+
+if echo "$*" | grep -e "\b--uninstall\b" -q; then
+    cat << EOM
+This script will remove
+
+    $HOOKPATH
+
+EOM
+    read -n1 -r -p "Press $(tput bold)Enter$(tput sgr0) to continue the uninstall process or anything else to abort: $(tput sc)" control
+    if [ ! ${#control} -eq 0 ]; then
+        printf "%s" "$(tput rc)$(tput setaf 1)Abort$(tput sgr0)"
+        echo
+        echo -e "\nAborting. See you 👋"
+        exit 0
+    else
+        printf "%s" "$(tput rc)$(tput setaf 2)Uninstall$(tput sgr0)"
+        echo
+        if [ -f "$HOOKPATH" ]; then
+            rm "$HOOKPATH"
+            echo "The script has been removed 👍"
+        else
+            echo "No script found 🤷 Nothing to do"
+        fi
+    fi
+
+    if git config --local --get-regexp jira &> /dev/null; then
+        echo
+        echo "Do you want to remove the configuration as well?"
+        echo
+        read -n1 -r -p "Press $(tput bold)Enter$(tput sgr0) to remove the configuration or anything else to abort: $(tput sc)" control
+        if [ ${#control} -eq 0 ]; then
+            printf "%s" "$(tput rc)$(tput setaf 2)Remove$(tput sgr0)"
+            echo
+            git config --local --remove-section jira
+            echo "Configuration has been removed 🚮"
+        else
+            printf "%s" "$(tput rc)$(tput setaf 3)Skip$(tput sgr0)"
+        fi
+    fi
+    exit 0
+fi
 
 
-if [ -n "$1" ]; then
-  exec_path="$1"
+cat << EOM
+This script will replace the content of the following file:
+
+    $(tput smso)$HOOKPATH$(tput rmso)
+
+EOM
+
+read -n1 -r -p "Press $(tput bold)Enter$(tput sgr0) to continue or anything else to abort: $(tput sc)" control
+
+if [ ! ${#control} -eq 0 ]; then
+    printf "%s" "$(tput rc)$(tput setaf 1)Abort$(tput sgr0)"
+    echo -e "\nAborting. See you 👋"
+    exit 0
+fi
+
+printf "%s" "$(tput rc)$(tput setaf 2)OK$(tput sgr0)"
+
+cat << EOM
+
+
+Fetching script content from $(tput smul)$HOOKURL$(tput rmul)
+
+EOM
+
+curl $HOOKURL > "$HOOKPATH"
+chmod +x "$HOOKPATH"
+
+TOKENURL="https://id.atlassian.com/manage-profile/security/api-tokens"
+
+cat << EOM
+
+🎉 $(tput bold)$(tput setaf 2)Done.$(tput sgr0) The script has been saved in $HOOKPATH
+
+Now obtain your API token from:
+
+    $(tput smul)$TOKENURL$(tput rmul)
+
+EOM
+
+read -n1 -r -p "Press $(tput bold)Enter$(tput sgr0) to open the link above in your default browser or anything else to skip this step: $(tput sc)" control
+
+if [ ${#control} -eq 0 ]; then
+    printf "%s" "$(tput rc)$(tput setaf 2)Open$(tput sgr0)"
+    OS="$(uname -s)"
+    case "${OS}" in
+        Linux*)
+            if command -v xdg-open &> /dev/null; then
+                xdg-open $TOKENURL &> /dev/null
+            fi
+        ;;
+        Darwin*)
+            open $TOKENURL
+        ;;
+    esac
 else
-  exec_path="$HOME/.bin/git-jira-commit-msg"
+    printf "%s" "$(tput rc)$(tput setaf 3)Skip$(tput sgr0)"
 fi
 
-print_separator
+echo
 
-if ! [ -d "$(dirname "$exec_path")" ]; then
-  print_log "info" "Creating directory $(dirname "$exec_path")"
-  mkdir -p "$(dirname "$exec_path")"
-fi
+read -n1 -r -p "Press $(tput bold)Enter$(tput sgr0) to configure the plugin now or anything else to skip this step: $(tput sc)" control
 
-print_log "item" "$(tput bold)Installing git-jira…$(tput sgr0)"
+if [ ${#control} -eq 0 ]; then
+    printf "%s" "$(tput rc)$(tput setaf 2)Configure$(tput sgr0)"
+    echo
 
-print_separator
+    read -r -p "Your Jira email: " email
+    git config jira.email "$email"
 
-print_log "info" "Fetching $exec_url"
+    read -r -p "Your Jira token: " token
+    git config jira.token "$token"
 
-response=$(curl -f "$exec_url")
-status_code="$?"
+    read -r -p "Your Jira URL: " url
+    git config jira.url "$url"
 
-if [ $status_code -eq 0 ]; then
-  echo "$response" > "$exec_path"
-  chmod +x "$exec_path"
-  print_log "success" "GitJira executable saved to $exec_path"
+    git config jira.enabled true
+    cat << EOM
+
+The settings have been saved in $(git rev-parse --show-toplevel)/.git/config
+
+To temporary disable the plugin just type:
+
+    git config jira.enabled false
+
+EOM
 else
-  abort_all "Error while fetching $exec_url"
+    cat << EOM
+$(tput rc)$(tput setaf 3)Skip$(tput sgr0)
+
+Remember to set the configuration entries in your .gitconfig
+
+    git config jira.email <email>
+    git config jira.token <token>
+    git config jira.url <url>
+    git config jira.enabled true
+
+EOM
 fi
-
-print_separator
-
-print_log "info" "Fetching $plugin_url"
-
-if ! [ -d "$(dirname "$plugin_path")" ]; then
-  print_log "info" "Creating directory $(dirname "$plugin_path")"
-  mkdir -p "$(dirname "$plugin_path")"
-fi
-
-response=$(curl -f "$plugin_url")
-status_code="$?"
-
-if [ $status_code -eq 0 ]; then
-  echo "$response" > "$plugin_path"
-  chmod +x "$plugin_path"
-  print_log "success" "GitJira Vim plugin saved to $plugin_path"
-else
-  abort_all "Error while fetching $plugin_url"
-fi
-
-print_separator
-
-echo "🎉 $(tput bold)$(tput setaf 2)Successfully installed Git Jira!$(tput sgr0) 🎉"
-
-uninstall_script="$(dirname "$exec_path")/git-uninstall-git-jira"
-
-cat > "$uninstall_script" << EOF
-#!/usr/bin/env bash
-rm $exec_path
-rm -rf $(dirname "$plugin_path")
-rm $uninstall_script
-echo "🚮 Git Jira removed."
-EOF
-chmod +x "$uninstall_script"
-
-cat << EOF
-
-  $(tput bold)Setup$(tput sgr0)
-
-  Git Jira reqires Jira credentials exported as environment variables:
-
-    export GIT_JIRA_USER="your user name"
-    export GIT_JIRA_PASSWORD="your password"
-    export GIT_JIRA_URL="your jira server address"
-
-  The script installs its exec util into "$HOME/.bin". Make sure to add this directory to your path:
-
-    export PATH="$HOME/.bin:$PATH"
-
-  $(tput bold)Uninstall$(tput sgr0)
-
-  To uninstall Git Jira run:
-
-    cat $(dirname "$exec_path")/git-uninstall-git-jira | bash
-
-  $(tput bold)Usage$(tput sgr0)
-
-  You can use the standalone executable with optional branch parameter:
-
-    $ git-jira-commit-msg [branch]
-
-  Also, the executable is actually a git plugin:
-
-    $ git jira-commit-msg [branch]
-
-  While editing commit message in vim use command:
-
-    :PrepareCommitMessage
-
-EOF

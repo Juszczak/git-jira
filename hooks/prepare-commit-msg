@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+COMMIT_MSG_FILE=$1
+COMMIT_SOURCE=$2
+SHA1=$3
+
+if [ -n "$COMMIT_SOURCE" ]; then
+    exit 0;
+fi
+
+if [[ $(git config --get jira.enabled) != true ]]; then
+    exit 0;
+fi
+
+EMAIL="$(git config --get jira.email)"
+TOKEN="$(git config --get jira.token)"
+URL="$(git config --get jira.url)"
+
+BRANCH="$(git symbolic-ref --short HEAD)"
+
+URI="rest/api/latest/issue/$BRANCH"
+CTH="Content-Type: application/json"
+AUTH="$EMAIL:$TOKEN"
+
+REQUEST="curl -H $CTH -u $AUTH -s $URL/$URI"
+
+RESPONSE="$($REQUEST)"
+PARENT=$(echo "$RESPONSE" | jq .fields.parent.key | tr -d '"')
+KEY=$(echo "$RESPONSE" | jq .key | tr -d '"')
+SUMMARY=$(echo "$RESPONSE" | jq .fields.summary | tr -d '"')
+ERROR=$(echo "$RESPONSE" | jq .errorMessages)
+SUFFIX=$(cat "$COMMIT_MSG_FILE")
+
+if [ "$ERROR" != "null" ]; then
+    exit 0;
+fi
+
+MESSAGE="[$KEY] $SUMMARY"
+if [[ "$PARENT" != "null" ]]; then
+    MESSAGE="[$PARENT]$MESSAGE"
+fi
+
+cat > "$COMMIT_MSG_FILE" <<- EOM
+$MESSAGE
+
+Changes made:
+-
+
+$SUFFIX
+# $COMMIT_SOURCE
+# $SHA1
+EOM

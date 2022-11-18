@@ -7,36 +7,19 @@
 curl https://raw.githubusercontent.com/Juszczak/git-jira/master/scripts/install | bash
 ```
 
-The script installs its exec util into `$HOME/.bin`. Make sure to add this directory to your path:
-
-```
-export PATH="$HOME/.bin:$PATH"
-```
-
 # Setup
 
-Set up Jira credentials as environment variables:
+Set up Jira credentials as git config entries (global or for a single repo):
 
 ```bash
-  export GIT_JIRA_USER=your_username
-  export GIT_JIRA_PASSWORD=your_password
-  export GIT_JIRA_URL=your_jira_hostname_with_port
+git config --global jira.email your_email
+git config --global jira.token your_token
+git config --global jira.url your_jira_url
+git config --global jira.enabled true
 ```
 
 # Usage
 
-## Standalone
-
 ```
-git-jira-commit-msg [branch]
+git commit
 ```
-
-## Git
-
-```
-git jira-commit-msg [branch]
-```
-
-## Vim
-
-:PrepareCommitMessage
