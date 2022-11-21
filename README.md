@@ -4,7 +4,7 @@
 
 # Install
 ```
-curl https://raw.githubusercontent.com/Juszczak/git-jira/master/scripts/install | bash
+bash <(curl https://raw.githubusercontent.com/Juszczak/git-jira/master/scripts/install)
 ```
 
 # Setup
